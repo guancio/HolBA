@@ -162,7 +162,7 @@ FULL_SIMP_TAC std_ss [bir_eval_bool_exp_INTRO, bir_mk_bool_val_true_thm]
 
 
 
-
+(*
 (* {{e/v}Q}Assign v:=e {Q} *)
 val bir_triple_exec_strmtB_assign_thm = prove(``
 ! v ex post.
@@ -635,7 +635,7 @@ val bir_exec_block_cjmp_triple_wp_thm = prove(``
  (* bir_is_bool_exp_eval_true_or_false_thm *)
  cheat
 );
-
+*)
 
 val _ = export_theory();
 
