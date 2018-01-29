@@ -196,9 +196,66 @@ PAT_X_ASSUM ``!ex.p`` (fn thm =>
  ASSUME_TAC (Q.SPECL [`post`, `ex`] thm)) >>
 FULL_SIMP_TAC std_ss [bir_var_name_def, bir_var_type_def] >>
 RW_TAC std_ss [] >>
-(* have atheorem that say that vars of (bir_exp_subst1 (BVar s'' b) ex post) contains *)
+(* have atheorem that says that vars of (bir_exp_subst1 (BVar s'' b) ex post) contains *)
 (* vars of post minus s'' *)
-cheat
+
+(* bir_exp_substitutionsTheory.bir_exp_subst1_USED_VARS *)
+
+
+(*
+rename first, and then focus on initialised bir variables
+*)
+  Q.RENAME1_TAC `BVar id ty` >>
+
+  FULL_SIMP_TAC pure_ss [bir_is_bool_exp_env_def] >>
+  REWRITE_TAC[]>>
+
+(*
+2-3 assigned variable is initd (BVar id ty)
+4 vars of ex to assign are initd
+7 vars of precond (substitution term) are initd
+
+precond can't contain a variable with same name but different type
+*)
+
+
+  SIMP_TAC (std_ss++pred_setSimps.PRED_SET_ss) [bir_env_vars_are_initialised_def] >>
+  REPEAT STRIP_TAC >>
+
+
+  Q.RENAME1_TAC `v2 IN bir_vars_of_exp post` >>
+
+  Cases_on `v2 = BVar id ty` >- (
+    ASM_REWRITE_TAC [bir_env_var_is_initialised_def, bir_var_type_def, bir_var_name_def, bir_env_lookup_def, finite_mapTheory.FLOOKUP_UPDATE] >>
+    METIS_TAC []
+  ) >>
+
+  Cases_on `bir_var_name v2 = id` >- (
+    subgoal `bir_env_var_is_initialised (BEnv f) v2` >- (
+      FULL_SIMP_TAC (std_ss) [bir_exp_substitutionsTheory.bir_exp_subst1_USED_VARS, bir_envTheory.bir_env_vars_are_initialised_UNION] >>
+
+      FULL_SIMP_TAC (std_ss++pred_setSimps.PRED_SET_ss) [bir_envTheory.bir_env_vars_are_initialised_def, pred_setTheory.DIFF_DEF]
+    ) >>
+
+    Cases_on `v2` >>
+
+    FULL_SIMP_TAC (std_ss) [bir_var_name_def, bir_env_var_is_initialised_def, bir_var_type_def] >>
+    REV_FULL_SIMP_TAC (std_ss) [] >>
+    FULL_SIMP_TAC (std_ss) []
+  ) >>
+
+  Cases_on `v2` >>
+
+  FULL_SIMP_TAC (std_ss++pred_setSimps.PRED_SET_ss) [bir_var_name_def, bir_env_var_is_initialised_def, bir_env_lookup_def, finite_mapTheory.FLOOKUP_UPDATE, bir_env_vars_are_initialised_def] >>
+
+  Q.RENAME1_TAC `BVar id2 ty2 ∈ bir_vars_of_exp post` >>
+
+(*  Q.EXISTS_TAC `BVar id2 ty2` >> *)
+  subgoal `(BVar id2 ty2) IN bir_vars_of_exp (bir_exp_subst1 (BVar id ty) ex post)` >- (
+    ASM_SIMP_TAC (std_ss++pred_setSimps.PRED_SET_ss) [bir_exp_substitutionsTheory.bir_exp_subst1_USED_VARS]
+  ) >>
+
+  METIS_TAC [bir_var_name_def]
 );
 
 val bir_env_vars_are_initialised_observe_INSERT = prove(``
@@ -438,16 +495,38 @@ bir_exec_block_jmp_triple p bl pre post l =
   )
 `);
 
+
+val SUBSET_BIGUNION_IMAGE_thm = prove(``
+  !x s f.
+    (x IN s) ==> ((f x) SUBSET (BIGUNION (IMAGE f s)))
+``,
+
+  SIMP_TAC (pure_ss) [pred_setTheory.IMAGE_DEF, pred_setTheory.BIGUNION, pred_setTheory.SUBSET_DEF] >>
+  REPEAT STRIP_TAC >>
+
+  FULL_SIMP_TAC (std_ss++pred_setSimps.PRED_SET_ss) [] >>
+  Q.EXISTS_TAC `f x` >>
+  FULL_SIMP_TAC (std_ss++pred_setSimps.PRED_SET_ss) [] >>
+  Q.EXISTS_TAC `x` >>
+
+  METIS_TAC []
+
+);
+
 val bir_vars_are_initialized_block_then_every_stmts_thm = prove(``
+ !st bl.
  (bir_env_vars_are_initialised st.bst_environ (bir_vars_of_block bl)) ==>
  (EVERY (λstmt.
     bir_env_vars_are_initialised st.bst_environ
        (bir_vars_of_stmtB stmt)) bl.bb_statements)
 ``,
   FULL_SIMP_TAC std_ss [bir_vars_of_block_def, listTheory.EVERY_MEM] >>
-  REPEAT (GEN_TAC ORELSE DISCH_TAC) >>
-  cheat
+  REPEAT STRIP_TAC >>
+
+  METIS_TAC [bir_env_vars_are_initialised_UNION, SUBSET_BIGUNION_IMAGE_thm, bir_env_vars_are_initialised_SUBSET]
 );
+
+
 
 val bir_exec_block_jmp_triple_wp_thm = prove(``
   !p bl post l.
