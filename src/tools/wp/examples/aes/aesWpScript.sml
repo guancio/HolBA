@@ -69,8 +69,10 @@ aes round
 
 *)
 
+val number = 3;
+
 val take_all = false; (* false for a normal run, should override the others *)
-val take_n_last = 2;
+val take_n_last = number;
 val dontcalcfirstwp = false;
 
 val aes_program_term_whole = ((snd o dest_comb o concl) aes_arm8_program_THM);
@@ -229,7 +231,7 @@ val lbl_list = List.map (term_to_string o snd o gen_dest_Imm o dest_BL_Address) 
 val varexps_thms = preproc_vars [] (tl (rev lbl_list));
 
 
-val i = 1; (*60 - 230;*)
+val i = number - 1; (*60 - 230;*)
 val lbl_str = List.nth (lbl_list, (List.length lbl_list) - 2 - i);
 
 val def_thm = lookup_def ("bir_wp_comp_wps_iter_step2_wp_" ^ lbl_str);
