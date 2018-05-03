@@ -11,6 +11,11 @@ val _ = new_theory "aesSimpWp";
 
 
 
+(* ----------- measurement start ----------- *)
+val runMeasurement = true;
+val timer_start = Lib.start_time ();
+
+
 val lbl_list = (gen_lbl_list o snd o dest_eq o concl) aes_wps1_def;
 
 
@@ -19,7 +24,7 @@ val varexps_thms = preproc_vars [] (tl (rev lbl_list));
 
 (* provide the number of arm instructions to take for the simplification, counted from the end of the computed block *)
 val take_all = true;
-val i = 30; (*60 - 230;*)
+val i = 100; (*60 - 230;*)
 
 val i_min = 1;
 val i_max = (List.length lbl_list) - 1;
@@ -36,9 +41,16 @@ val def_const = (fst o dest_eq o concl) def_thm;
 
 
 val btautology = ``BExp_Const (Imm1 1w)``;
-val prem_init = ``^btautology``; (* have another premise here *)
+val prem_init = ``^btautology``; (*``BExp_Const (Imm1 precond_v)``;*) (* have another premise here *)
 
 val goalterm = ``bir_exp_is_taut (bir_exp_imp ^prem_init (bir_exp_varsubst FEMPTY ^def_const))``;
+
+
+
+(* ----------- measurement overhead ----------- *)
+val _ = if not runMeasurement then () else
+        Lib.end_time timer_start;
+val timer_start = Lib.start_time ();
 
 (*ASSUME (simp_construct_wt (simp_extract goalterm) NONE);*)
 val wt0_thm = prove (``^(simp_construct_wt (simp_extract goalterm) NONE)``,
@@ -46,9 +58,13 @@ val wt0_thm = prove (``^(simp_construct_wt (simp_extract goalterm) NONE)``,
 );
 
 
-val timer_start = Lib.start_time ();
 val (simp_thm,wt_thm) = bir_wp_simp_CONV varexps_thms goalterm wt0_thm;
-val _ = Lib.end_time timer_start;
+
+
+(* ----------- measurement end ----------- *)
+val _ = if not runMeasurement then () else
+        Lib.end_time timer_start;
+
 
 
 val wp_simp_term = (snd o dest_comb o snd o dest_comb o snd o dest_eq o concl) simp_thm;

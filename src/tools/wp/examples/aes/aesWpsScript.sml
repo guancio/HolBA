@@ -48,6 +48,11 @@ val fst_block_label = get_nth_last_label aes_program_term ((get_prog_length aes_
 val snd_block_label = get_nth_last_label aes_program_term ((get_prog_length aes_program_term) - 2);
 
 
+(* ----------- measurement start ----------- *)
+val runMeasurement = true;
+val timer_start = Lib.start_time ();
+
+
 val aes_program_def = Define `
       aes_program = ^aes_program_term
 `;
@@ -71,6 +76,12 @@ val wps = ``aes_wps``;
 val defs = [aes_program_def, aes_post_def, aes_ls_def, aes_wps_def];
 
 
+(* ----------- measurement overhead ----------- *)
+val _ = if not runMeasurement then () else
+        Lib.end_time timer_start;
+val timer_start = Lib.start_time ();
+
+
 
 (* wps_bool_sound_thm for initial wps *)
 val prog_term = (snd o dest_comb o concl) aes_program_def;
@@ -85,8 +96,16 @@ val reusable_thm = bir_wp_exec_of_block_reusable_thm;
 val prog_thm = bir_wp_comp_wps_iter_step0_init reusable_thm (program, post, ls) defs;
 
 
-
 val (wps1, wps1_bool_sound_thm) = bir_wp_comp_wps prog_thm ((wps, wps_bool_sound_thm), (wpsdom, List.rev blstodo)) (program, post, ls) defs;
+
+
+
+(* ----------- measurement end ----------- *)
+val _ = if not runMeasurement then () else
+        Lib.end_time timer_start;
+
+
+
 val aes_wps1_def = Define `
       aes_wps1 = ^wps1
 `;
