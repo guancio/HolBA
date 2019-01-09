@@ -1,8 +1,10 @@
-/.HOLMK
-/.hollogs
+.HOLMK
+.hollogs
+*Theory.dat
 *Theory.sig
 *Theory.sml
 *.ui
 *.uo
 *~
-/selftest.exe
+*.exe
+*-heap
